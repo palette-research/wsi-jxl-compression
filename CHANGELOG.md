@@ -7,6 +7,6 @@ and adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 #### Todo
-* Select larges tiles (do this logic)
+* Select larges tiles (do this logic). Talk with lab first.
 * Clean up file and do some testing
 
