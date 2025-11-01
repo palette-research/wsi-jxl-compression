@@ -12,6 +12,7 @@ class Tile:
     y: int
     w: int
     h: int
+    coverage: float
 
     def as_dict(self) -> Dict[str, int]:
         return {
@@ -20,4 +21,5 @@ class Tile:
             "y": self.y,
             "w": self.w,
             "h": self.h,
+            "coverage": self.coverage
         }
