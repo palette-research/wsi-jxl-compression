@@ -14,7 +14,11 @@ env/
 # Data
 data/
 
-# config, main file
+# Results
+results/
+
+# other
 config.py
 main.py
+CHANGELOG.md
 
