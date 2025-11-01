@@ -10,3 +10,11 @@ env/
 
 # JetBrains
 .idea/
+
+# Data
+data/
+
+# config, main file
+config.py
+main.py
+
