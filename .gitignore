@@ -17,6 +17,9 @@ data/
 # Results
 results/
 
+# Encoded
+encoded/
+
 # other
 config.py
 main.py
