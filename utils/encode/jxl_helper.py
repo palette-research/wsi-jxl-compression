@@ -13,6 +13,7 @@ import tempfile
 import subprocess
 import os
 from PIL import Image
+import time
 
 # ---------------------- General Helpers --------------------- #
 
@@ -121,35 +122,43 @@ def search_distance_for_ssim(
         target: float,
         tol: float,
         cfg: JxlConfig
-
-) -> Tuple[float, float]:
+) -> Tuple[float, bytes, float, float, float]:
     """
     Find the largest JPEG XL `--distance` (i.e., most compression) whose decoded image
     still meets SSIM >= target - tol vs the original `rgb`.
     """
-
     # ---------------- Validation of inputs ----------------- #
-    # @TODO
+    if rgb.ndim != 3 or rgb.shape[2] != 3:
+        raise ValueError(f"Expected RGB (H,W,3), got {rgb.shape}")
+    if not (0.0 < target <= 1.0) or tol < 0:
+        raise ValueError("Invalid SSIM target/tol")
 
+    # ---------------- Preparation of data ----------------- #
     lo, hi = float(cfg.DIST_MIN), float(cfg.DIST_MAX)
 
     # Best candidate that meets the SSIM gate, None if not met
-    best_d: float | None = None
-    best_blob: bytes | None = None
-    best_s: float = 0.0
+    distance: float | None = None
+    encoded_bytes: bytes | None = None
+    enc_ms: float | None = None
+    dec_ms: float | None = None
+    similarity: float = 0.0
 
-    for _ in range(cfg.MAX_ITERS):
+    for it in range(cfg.MAX_ITERS):
         mid = 0.5 * (lo + hi)
 
         # Encode at the trial distance
-        blob = encode_jxl_bytes_from_rgb(
+        t0 = time.perf_counter()
+        encoded = encode_jxl_bytes_from_rgb(
             rgb,
             distance=mid,
             effort=cfg.EFFORT
         )
+        enc_ms = (time.perf_counter() - t0) * 1000.0
 
+        t1 = time.perf_counter()
         # Decode at the trial distance
-        decoded = decode_jxl_bytes_to_rgb(blob)
+        decoded = decode_jxl_bytes_to_rgb(encoded)
+        dec_ms = (time.perf_counter() - t1) * 1000.0
 
         # Measure the structural similarity
         s = ssim_rgb(
@@ -158,7 +167,7 @@ def search_distance_for_ssim(
         )
 
         if s >= (target - tol):
-            best_d, best_blob, best_s = mid, blob, s
+            distance, encoded_bytes, similarity = mid, encoded, s
             lo = mid
         else:
             hi = mid
@@ -166,5 +175,5 @@ def search_distance_for_ssim(
         if (hi - lo) < cfg.STOP_EPS:
             break
 
-        if best_blob is not None:
-            return float(best_d), float(best_blob), float(best_s)
+    if encoded_bytes is not None:
+        return float(distance), encoded_bytes, float(similarity), float(enc_ms), float(dec_ms)
