@@ -1,7 +1,9 @@
 # Whole Slide Image Compression Using JPEG XL
 
 **Author:** Didrik Wiig-Andersen  
+
 **Created:** October 31, 2025
+
 **Last edited:** December 2, 2025
 
 ---
